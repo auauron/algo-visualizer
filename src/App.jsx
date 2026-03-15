@@ -23,8 +23,8 @@ export default function App() {
         <div className="header-logo">
           <div className="logo-icon">🔢</div>
           <div>
-            <div className="logo-text">AlgoTrace - ronski</div>
-            <div className="logo-sub">Sorting Visualizer</div>
+            <div className="logo-text">AlgoTrace</div>
+            <div className="logo-sub">Sorting Visualizer by ronski</div>
           </div>
         </div>
         <nav className="header-nav">
