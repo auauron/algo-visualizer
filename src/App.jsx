@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import WatchMode from './components/WatchMode';
 import ExamMode from './components/ExamMode';
 import Sidebar from './components/Sidebar';
+import QuizMode from './components/QuizMode';
 import { ALGORITHMS, generateBestCase } from './algorithms';
 import './index.css';
 
@@ -9,7 +10,7 @@ const ALGO_LIST = Object.values(ALGORITHMS);
 
 export default function App() {
   const [activeAlgo, setActiveAlgo] = useState('selection');
-  const [activeMode, setActiveMode] = useState('watch'); // 'watch' | 'exam'
+  const [activeMode, setActiveMode] = useState('watch'); // 'watch' | 'exam' | 'quiz'
   const [currentStep, setCurrentStep] = useState(null);
 
   // WatchMode shares currentStep via callback for Sidebar pseudocode highlighting
@@ -39,45 +40,59 @@ export default function App() {
           >
             🎓 Exam Mode
           </button>
+          <button
+            className={`nav-tab ${activeMode === 'quiz' ? 'active' : ''}`}
+            onClick={() => setActiveMode('quiz')}
+          >
+            🧠 Quiz Mode
+          </button>
         </nav>
       </header>
 
-      {/* Algorithm Selector */}
-      <div className="algo-selector-bar">
-        {ALGO_LIST.map(algo => (
-          <button
-            key={algo.id}
-            className={`algo-chip ${activeAlgo === algo.id ? 'active' : ''}`}
-            onClick={() => setActiveAlgo(algo.id)}
-          >
-            <div
-              className="algo-chip-dot"
-              style={{ background: activeAlgo === algo.id ? algo.color : 'var(--text-muted)' }}
-            />
-            {algo.label}
-            <span style={{
-              fontSize: '0.65rem',
-              color: activeAlgo === algo.id ? 'var(--text-secondary)' : 'var(--text-muted)',
-              background: 'rgba(255,255,255,0.05)',
-              borderRadius: '4px',
-              padding: '0 4px',
-              fontFamily: 'var(--font-mono)',
-            }}>
-              {algo.info.timeAvg}
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* Algorithm Selector — hidden in Quiz Mode (quiz has its own filter) */}
+      {activeMode !== 'quiz' && (
+        <div className="algo-selector-bar">
+          {ALGO_LIST.map(algo => (
+            <button
+              key={algo.id}
+              className={`algo-chip ${activeAlgo === algo.id ? 'active' : ''}`}
+              onClick={() => setActiveAlgo(algo.id)}
+            >
+              <div
+                className="algo-chip-dot"
+                style={{ background: activeAlgo === algo.id ? algo.color : 'var(--text-muted)' }}
+              />
+              {algo.label}
+              <span style={{
+                fontSize: '0.65rem',
+                color: activeAlgo === algo.id ? 'var(--text-secondary)' : 'var(--text-muted)',
+                background: 'rgba(255,255,255,0.05)',
+                borderRadius: '4px',
+                padding: '0 4px',
+                fontFamily: 'var(--font-mono)',
+              }}>
+                {algo.info.timeAvg}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="main-content">
-        {activeMode === 'watch' ? (
+        {activeMode === 'quiz' ? (
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <QuizMode />
+          </div>
+        ) : activeMode === 'watch' ? (
           <WatchModeWithStep algoId={activeAlgo} onStepChange={setCurrentStep} />
         ) : (
           <ExamMode key={activeAlgo} algoId={activeAlgo} />
         )}
 
-        <Sidebar algoId={activeAlgo} currentStep={activeMode === 'watch' ? currentStep : null} />
+        {activeMode !== 'quiz' && (
+          <Sidebar algoId={activeAlgo} currentStep={activeMode === 'watch' ? currentStep : null} />
+        )}
       </div>
     </div>
   );
