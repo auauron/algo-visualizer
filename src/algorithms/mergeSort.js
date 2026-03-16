@@ -2,6 +2,7 @@ export function generateMergeSortSteps(arr) {
     const steps = [];
     const a = [...arr];
     const n = a.length;
+    const aux = new Array(n);
 
     steps.push({
         array: [...a],
@@ -37,12 +38,6 @@ export function generateMergeSortSteps(arr) {
         mergeSort(arr, mid + 1, hi);
 
         // Merge
-        const left = arr.slice(lo, mid + 1);
-        const right = arr.slice(mid + 1, hi + 1);
-        let i = 0,
-            j = 0,
-            k = lo;
-
         steps.push({
             array: [...arr],
             comparing: [],
@@ -55,69 +50,81 @@ export function generateMergeSortSteps(arr) {
             hi,
         });
 
-        while (i < left.length && j < right.length) {
-            steps.push({
-                array: [...arr],
-                comparing: [lo + i, mid + 1 + j],
-                swapping: [],
-                sorted: [],
-                comment: `Comparing ${left[i]} (left[${i}]) vs ${right[j]} (right[${j}]). Picking smaller: ${Math.min(left[i], right[j])}.`,
-                codeLine: 6,
-                lo,
-                mid,
-                hi,
-            });
+        for (let k = lo; k <= hi; k++) {
+            aux[k] = arr[k];
+        }
 
-            if (left[i] <= right[j]) {
-                arr[k] = left[i++];
+        steps.push({
+            array: [...arr],
+            comparing: [],
+            swapping: [],
+            sorted: [],
+            comment: `Copied elements to auxiliary array (aux) for range [${lo}...${hi}].`,
+            codeLine: 7,
+            lo,
+            mid,
+            hi,
+        });
+
+        let i = lo, j = mid + 1;
+        for (let k = lo; k <= hi; k++) {
+            if (i > mid) {
+                const val = aux[j];
+                arr[k] = aux[j++];
+                steps.push({
+                    array: [...arr],
+                    comparing: [],
+                    swapping: [k],
+                    sorted: [],
+                    comment: `Left half exhausted (i > mid). Copying remaining right element ${val} to arr[${k}].`,
+                    codeLine: 10,
+                    lo,
+                    mid,
+                    hi,
+                });
+            } else if (j > hi) {
+                const val = aux[i];
+                arr[k] = aux[i++];
+                steps.push({
+                    array: [...arr],
+                    comparing: [],
+                    swapping: [k],
+                    sorted: [],
+                    comment: `Right half exhausted (j > hi). Copying remaining left element ${val} to arr[${k}].`,
+                    codeLine: 11,
+                    lo,
+                    mid,
+                    hi,
+                });
+            } else if (aux[j] < aux[i]) {
+                const valI = aux[i], valJ = aux[j];
+                arr[k] = aux[j++];
+                steps.push({
+                    array: [...arr],
+                    comparing: [],
+                    swapping: [k],
+                    sorted: [],
+                    comment: `Comparing left element ${valI} vs right element ${valJ}. ${valJ} is smaller, placing at arr[${k}].`,
+                    codeLine: 12,
+                    lo,
+                    mid,
+                    hi,
+                });
             } else {
-                arr[k] = right[j++];
+                const valI = aux[i], valJ = aux[j];
+                arr[k] = aux[i++];
+                steps.push({
+                    array: [...arr],
+                    comparing: [],
+                    swapping: [k],
+                    sorted: [],
+                    comment: `Comparing left element ${valI} vs right element ${valJ}. ${valI} is smaller or equal, placing at arr[${k}].`,
+                    codeLine: 13,
+                    lo,
+                    mid,
+                    hi,
+                });
             }
-
-            steps.push({
-                array: [...arr],
-                comparing: [],
-                swapping: [k],
-                sorted: [],
-                comment: `Placed ${arr[k]} at position ${k} in the merged array.`,
-                codeLine: 7,
-                lo,
-                mid,
-                hi,
-            });
-            k++;
-        }
-
-        while (i < left.length) {
-            arr[k] = left[i++];
-            steps.push({
-                array: [...arr],
-                comparing: [],
-                swapping: [k],
-                sorted: [],
-                comment: `Copying remaining left element ${arr[k]} to position ${k}.`,
-                codeLine: 8,
-                lo,
-                mid,
-                hi,
-            });
-            k++;
-        }
-
-        while (j < right.length) {
-            arr[k] = right[j++];
-            steps.push({
-                array: [...arr],
-                comparing: [],
-                swapping: [k],
-                sorted: [],
-                comment: `Copying remaining right element ${arr[k]} to position ${k}.`,
-                codeLine: 9,
-                lo,
-                mid,
-                hi,
-            });
-            k++;
         }
 
         // Mark this range as sorted
@@ -128,7 +135,7 @@ export function generateMergeSortSteps(arr) {
             swapping: [],
             sorted: sortedRange,
             comment: `Subarray [${lo}...${hi}] is now merged and sorted: [${arr.slice(lo, hi + 1).join(", ")}].`,
-            codeLine: 10,
+            codeLine: 14,
             lo,
             mid,
             hi,
@@ -143,7 +150,7 @@ export function generateMergeSortSteps(arr) {
         swapping: [],
         sorted: [...Array.from({ length: n }, (_, i) => i)],
         comment: "Merge Sort complete! All subarrays have been merged into one fully sorted array.",
-        codeLine: 11,
+        codeLine: 15,
         lo: 0,
         mid: Math.floor((n - 1) / 2),
         hi: n - 1,
@@ -153,19 +160,22 @@ export function generateMergeSortSteps(arr) {
 }
 
 export const mergeSortPseudocode = [
-    "procedure mergeSort(A, lo, hi):",
-    "  if lo >= hi: return",
-    "  mid = floor((lo + hi) / 2)",
-    "  mergeSort(A, lo, mid)",
-    "  mergeSort(A, mid+1, hi)",
-    "  merge(A, lo, mid, hi):",
-    "    compare left[i] vs right[j]",
-    "    place smaller at A[k]",
-    "    copy remaining left elements",
-    "    copy remaining right elements",
-    "    // subarray [lo..hi] is sorted",
-    "  end merge",
-    "end procedure",
+    "procedure mergeSort(A, lo, hi):",           // 0
+    "  if lo >= hi: return",                     // 1
+    "  mid = floor((lo + hi) / 2)",              // 2
+    "  mergeSort(A, lo, mid)",                   // 3
+    "  mergeSort(A, mid+1, hi)",                 // 4
+    "  merge(A, aux, lo, mid, hi):",             // 5
+    "    for k = lo to hi:",                     // 6
+    "      aux[k] = A[k]",                       // 7
+    "    i = lo; j = mid + 1",                   // 8
+    "    for k = lo to hi:",                     // 9
+    "      if (i > mid)              A[k] = aux[j++]", // 10
+    "      else if (j > hi)          A[k] = aux[i++]", // 11
+    "      else if (aux[j] < aux[i]) A[k] = aux[j++]", // 12
+    "      else                      A[k] = aux[i++]", // 13
+    "    // subarray [lo..hi] is sorted",        // 14
+    "end procedure",                             // 15
 ];
 
 export const mergeSortInfo = {
@@ -176,7 +186,7 @@ export const mergeSortInfo = {
     space: "O(n)",
     stable: true,
     description:
-        "Divide and conquer: recursively split the array in half, sort each half, then merge them back together. Guaranteed O(n log n) always.",
-    bestCase: "Even on a sorted array, Merge Sort always divides and merges — O(n log n) with minimal comparisons.",
-    worstCase: "Reverse-sorted: still O(n log n) but with maximum comparisons at each merge step.",
+        "John von Neumann's Divide and Conquer algorithm: recursively split array in half, sort each, then merge them. Guaranteed O(n log n).",
+    bestCase: "Always divides and merges — O(n log n).",
+    worstCase: "Still O(n log n) with maximum comparisons at each merge step.",
 };
