@@ -1,4 +1,4 @@
-// Lomuto partition scheme
+// Hoare partition scheme
 export function generateQuickSortSteps(arr) {
     const steps = [];
     const a = [...arr];
@@ -9,11 +9,11 @@ export function generateQuickSortSteps(arr) {
         comparing: [],
         swapping: [],
         sorted: [],
-        comment: "Starting Quick Sort (Lomuto partition). We pick the last element as pivot and partition around it.",
+        comment: "Starting Quick Sort (Hoare partition). We pick the first element as pivot.",
         codeLine: 0,
         lo: 0,
         hi: n - 1,
-        pivot: n - 1,
+        pivot: 0,
     });
 
     const sortedPositions = new Set();
@@ -24,85 +24,134 @@ export function generateQuickSortSteps(arr) {
             return;
         }
 
-        const pivotVal = arr[hi];
-        let i = lo - 1;
+        const pivotVal = arr[lo];
+        let i = lo;
+        let j = hi + 1;
 
         steps.push({
             array: [...arr],
             comparing: [],
             swapping: [],
             sorted: [...sortedPositions],
-            comment: `Partition [${lo}...${hi}]: pivot = ${pivotVal} (index ${hi}). i starts at ${lo - 1}.`,
+            comment: `Partition [${lo}...${hi}]: pivot = ${pivotVal} (index ${lo}).`,
             codeLine: 2,
             lo,
             hi,
-            pivot: hi,
+            pivot: lo,
         });
 
-        for (let j = lo; j < hi; j++) {
-            steps.push({
-                array: [...arr],
-                comparing: [j, hi],
-                swapping: [],
-                sorted: [...sortedPositions],
-                comment: `Comparing ${arr[j]} (index ${j}) with pivot ${pivotVal}. ${arr[j] <= pivotVal ? `${arr[j]} ≤ pivot, so increment i and swap.` : `${arr[j]} > pivot, move on.`}`,
-                codeLine: 4,
-                lo,
-                hi,
-                pivot: hi,
-            });
-
-            if (arr[j] <= pivotVal) {
+        while (true) {
+            // scan left
+            while (i < hi) {
                 i++;
-                if (i !== j) {
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                steps.push({
+                    array: [...arr],
+                    comparing: [i, lo],
+                    swapping: [],
+                    sorted: [...sortedPositions],
+                    comment: `Comparing ${arr[i]} (index ${i}) with pivot ${pivotVal}...`,
+                    codeLine: 5,
+                    lo, hi, pivot: lo
+                });
+                if (arr[i] >= pivotVal) {
                     steps.push({
                         array: [...arr],
-                        comparing: [],
-                        swapping: [i, j],
+                        comparing: [i, lo],
+                        swapping: [],
                         sorted: [...sortedPositions],
-                        comment: `Swapped ${arr[i]} (index ${i}) and ${arr[j]} (now at index ${j}). i is now ${i}.`,
+                        comment: `${arr[i]} ≥ pivot, pause left pointer at index ${i}.`,
                         codeLine: 5,
-                        lo,
-                        hi,
-                        pivot: hi,
+                        lo, hi, pivot: lo
                     });
+                    break;
                 }
             }
-        }
 
-        // Place pivot
-        i++;
-        if (i !== hi) {
-            [arr[i], arr[hi]] = [arr[hi], arr[i]];
+            // scan right
+            while (j > lo) {
+                j--;
+                steps.push({
+                    array: [...arr],
+                    comparing: [j, lo],
+                    swapping: [],
+                    sorted: [...sortedPositions],
+                    comment: `Comparing ${arr[j]} (index ${j}) with pivot ${pivotVal}...`,
+                    codeLine: 6,
+                    lo, hi, pivot: lo
+                });
+                if (arr[j] <= pivotVal) {
+                    steps.push({
+                        array: [...arr],
+                        comparing: [j, lo],
+                        swapping: [],
+                        sorted: [...sortedPositions],
+                        comment: `${arr[j]} ≤ pivot, pause right pointer at index ${j}.`,
+                        codeLine: 6,
+                        lo, hi, pivot: lo
+                    });
+                    break;
+                }
+            }
+
             steps.push({
                 array: [...arr],
                 comparing: [],
-                swapping: [i, hi],
+                swapping: [],
                 sorted: [...sortedPositions],
-                comment: `Placing pivot ${pivotVal} at its final position: index ${i}. All elements left are ≤ pivot, all right are > pivot.`,
+                comment: `Checking if pointers crossed: i=${i}, j=${j}.`,
                 codeLine: 7,
-                lo,
-                hi,
-                pivot: i,
+                lo, hi, pivot: lo
+            });
+
+            if (i >= j) {
+                steps.push({
+                    array: [...arr],
+                    comparing: [],
+                    swapping: [],
+                    sorted: [...sortedPositions],
+                    comment: `Pointers crossed or met, partitioning complete.`,
+                    codeLine: 7,
+                    lo, hi, pivot: lo
+                });
+                break;
+            }
+
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+            steps.push({
+                array: [...arr],
+                comparing: [],
+                swapping: [i, j],
+                sorted: [...sortedPositions],
+                comment: `Swapped left element ${arr[i]} and right element ${arr[j]}.`,
+                codeLine: 8,
+                lo, hi, pivot: lo
             });
         }
 
-        sortedPositions.add(i);
+        [arr[lo], arr[j]] = [arr[j], arr[lo]];
+        steps.push({
+            array: [...arr],
+            comparing: [],
+            swapping: [lo, j],
+            sorted: [...sortedPositions],
+            comment: `Placing pivot ${pivotVal} at its final position: index ${j}.`,
+            codeLine: 9,
+            lo, hi, pivot: j
+        });
+
+        sortedPositions.add(j);
         steps.push({
             array: [...arr],
             comparing: [],
             swapping: [],
             sorted: [...sortedPositions],
-            comment: `Pivot ${arr[i]} is now in its final sorted position at index ${i}.`,
-            codeLine: 8,
-            lo,
-            hi,
-            pivot: i,
+            comment: `Pivot ${arr[j]} is now in final sorted position.`,
+            codeLine: 10,
+            lo, hi, pivot: j
         });
 
-        quickSort(arr, lo, i - 1);
-        quickSort(arr, i + 1, hi);
+        quickSort(arr, lo, j - 1);
+        quickSort(arr, j + 1, hi);
     }
 
     quickSort(a, 0, n - 1);
@@ -113,7 +162,7 @@ export function generateQuickSortSteps(arr) {
         swapping: [],
         sorted: [...Array.from({ length: n }, (_, i) => i)],
         comment: "Quick Sort complete! All pivots have been placed in their final positions.",
-        codeLine: 9,
+        codeLine: 12,
         lo: 0,
         hi: n - 1,
         pivot: -1,
@@ -123,20 +172,20 @@ export function generateQuickSortSteps(arr) {
 }
 
 export const quickSortPseudocode = [
-    "procedure quickSort(A, lo, hi):",
-    "  if lo >= hi: return",
-    "  pivot = A[hi]  // Lomuto: last element",
-    "  i = lo - 1",
-    "  for j = lo to hi-1:",
-    "    if A[j] <= pivot:",
-    "      i++; swap(A[i], A[j])",
-    "    end if",
-    "  end for",
-    "  swap(A[i+1], A[hi])  // place pivot",
-    "  // pivot is now in final position",
-    "  quickSort(A, lo, i)",
-    "  quickSort(A, i+2, hi)",
-    "end procedure",
+    "procedure quickSort(A, lo, hi):",           // 0
+    "  if lo >= hi: return",                     // 1
+    "  pivot = A[lo]  // Hoare partition",       // 2
+    "  i = lo; j = hi + 1",                      // 3
+    "  while true:",                             // 4
+    "    while i < hi and A[++i] < pivot: pass", // 5
+    "    while j > lo and A[--j] > pivot: pass", // 6
+    "    if i >= j: break",                      // 7
+    "    swap(A[i], A[j])",                      // 8
+    "  swap(A[lo], A[j])  // place pivot",       // 9
+    "  // pivot is now in final position",       // 10
+    "  quickSort(A, lo, j - 1)",                 // 11
+    "  quickSort(A, j + 1, hi)",                 // 12
+    "end procedure",                             // 13
 ];
 
 export const quickSortInfo = {
