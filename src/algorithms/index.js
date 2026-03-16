@@ -63,20 +63,51 @@ export function generateExamTrace(algoId, inputArr) {
 
     const steps = algo.generateSteps([...inputArr]);
     const rows = [];
-    let lastKey = null;
+    const hasExplicitExamSteps = steps.some(s => s.isExamStep);
 
-    for (const step of steps) {
-        const key = step.array.join(',');
-        if (key !== lastKey) {
-            rows.push({
-                array: [...step.array],
-                lo: step.lo ?? null,
-                mid: step.mid ?? null,
-                hi: step.hi ?? null,
-                gap: step.gap ?? null,
-                comment: step.comment,
-            });
-            lastKey = key;
+    if (hasExplicitExamSteps) {
+        // Exam mode uses explicitly defined major steps.
+        // It always includes the initial state as the very first step
+        rows.push({
+            array: [...inputArr],
+            lo: null, mid: null, hi: null, gap: null,
+            comment: "Initial State"
+        });
+
+        for (const step of steps) {
+            if (step.isExamStep) {
+                // To avoid consecutive duplicates
+                const currentStr = step.array.join(',');
+                const lastStr = rows[rows.length - 1].array.join(',');
+                if (currentStr !== lastStr) {
+                    rows.push({
+                        array: [...step.array],
+                        lo: step.lo ?? null,
+                        mid: step.mid ?? null,
+                        hi: step.hi ?? null,
+                        gap: step.gap ?? null,
+                        comment: step.comment,
+                    });
+                }
+            }
+        }
+    } else {
+        // Fallback: Use implicit deduplication on every step change
+        let lastKey = null;
+
+        for (const step of steps) {
+            const key = step.array.join(',');
+            if (key !== lastKey) {
+                rows.push({
+                    array: [...step.array],
+                    lo: step.lo ?? null,
+                    mid: step.mid ?? null,
+                    hi: step.hi ?? null,
+                    gap: step.gap ?? null,
+                    comment: step.comment,
+                });
+                lastKey = key;
+            }
         }
     }
 

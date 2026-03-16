@@ -139,6 +139,7 @@ export function generateMergeSortSteps(arr) {
             lo,
             mid,
             hi,
+            isExamStep: true,
         });
     }
 
@@ -154,6 +155,7 @@ export function generateMergeSortSteps(arr) {
         lo: 0,
         mid: Math.floor((n - 1) / 2),
         hi: n - 1,
+        isExamStep: true,
     });
 
     return steps;
