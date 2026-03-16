@@ -76,19 +76,17 @@ export function generateExamTrace(algoId, inputArr) {
 
         for (const step of steps) {
             if (step.isExamStep) {
-                // To avoid consecutive duplicates
-                const currentStr = step.array.join(',');
-                const lastStr = rows[rows.length - 1].array.join(',');
-                if (currentStr !== lastStr) {
-                    rows.push({
-                        array: [...step.array],
-                        lo: step.lo ?? null,
-                        mid: step.mid ?? null,
-                        hi: step.hi ?? null,
-                        gap: step.gap ?? null,
-                        comment: step.comment,
-                    });
-                }
+                // Do not deduplicate explicitly declared major operations.
+                // Even if the array doesn't change visually (e.g., merging already sorted elements),
+                // it represents a key, required algorithmic step in the manual trace.
+                rows.push({
+                    array: [...step.array],
+                    lo: step.lo ?? null,
+                    mid: step.mid ?? null,
+                    hi: step.hi ?? null,
+                    gap: step.gap ?? null,
+                    comment: step.comment,
+                });
             }
         }
     } else {
