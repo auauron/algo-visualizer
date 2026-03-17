@@ -82,7 +82,7 @@ export function generateExamTrace(algoId, inputArr) {
                 rows.push({
                     array: [...step.array],
                     lo: step.lo ?? null,
-                    mid: step.mid ?? null,
+                    mid: step.mid ?? step.pivot ?? null,
                     hi: step.hi ?? null,
                     gap: step.gap ?? null,
                     comment: step.comment,
@@ -99,7 +99,7 @@ export function generateExamTrace(algoId, inputArr) {
                 rows.push({
                     array: [...step.array],
                     lo: step.lo ?? null,
-                    mid: step.mid ?? null,
+                    mid: step.mid ?? step.pivot ?? null,
                     hi: step.hi ?? null,
                     gap: step.gap ?? null,
                     comment: step.comment,

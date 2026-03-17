@@ -169,7 +169,7 @@ export default function ExamMode({ algoId }) {
                             value={inputStr}
                             onChange={e => setInputStr(e.target.value.toUpperCase().replace(/[^A-Z]/g, ''))}
                             placeholder="Enter a word (A-Z only)..."
-                            maxLength={16}
+                            maxLength={25}
                         />
                         <button className="btn btn-primary" onClick={() => buildExam(inputStr)}>
                             🔄 Generate Worksheet
@@ -227,7 +227,7 @@ export default function ExamMode({ algoId }) {
                                 <th>Step</th>
                                 {Array.from({ length: cols }, (_, i) => <th key={i}>[{i}]</th>)}
                                 {hasLoMidHi && <th>lo</th>}
-                                {hasLoMidHi && <th>mid</th>}
+                                {hasLoMidHi && <th>{algoId === 'quick' ? 'pivot' : 'mid'}</th>}
                                 {hasLoMidHi && <th>hi</th>}
                                 {algoId === 'shell' && <th>gap</th>}
                                 <th>Action</th>
